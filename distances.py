@@ -44,10 +44,27 @@ class TimeSeriesKernelFactory:
 
     def compute_distance_matrix(self, X1, X2=None):
         """
-        Compute pairwise distance matrix. Supports input where each row is either a
-        1D array (the series) or a 2D array with shape (1, series_length).
+        Compute pairwise distance matrix with aeon's vectorized implementation.
+
+        Falls back to the pair-by-pair implementation for metrics or input shapes
+        that are not accepted by aeon.distances.pairwise_distance.
         """
         X2 = X1 if X2 is None else X2
+        try:
+            return aeon.distances.pairwise_distance(
+                X1,
+                X2,
+                metric=self.metric,
+                **self.metric_params,
+            )
+        except Exception as e:
+            print(f"Warning: pairwise_distance failed for '{self.metric}' ({e}). Falling back to pairwise loop.")
+            return self._compute_distance_matrix_loop(X1, X2)
+
+    def _compute_distance_matrix_loop(self, X1, X2):
+        """
+        Slow fallback for metrics or input shapes not supported by pairwise_distance.
+        """
         n1 = X1.shape[0]
         n2 = X2.shape[0]
         dist_mat = np.zeros((n1, n2))
