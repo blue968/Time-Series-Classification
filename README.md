@@ -70,21 +70,17 @@ The framework can run experiments over one or more selected measures. Results ar
 
 ### Noise Types
 
-Noise is treated as the deviation between the observed signal and the true signal. The research plan considers several typical noise patterns:
+Noise is treated as the deviation between the observed signal and the true signal. The current experiments focus on three implemented noise patterns:
 
 1. Additive noise, such as Gaussian jittering.
-2. Sampling noise, such as downsampling or time-axis disturbance.
-3. Multiplicative noise, where noise intensity is proportional to signal magnitude.
-4. Outliers, where a small number of time points receive large deviations.
-5. Missing values, where parts of the sequence are removed or masked.
+2. Missing values, where parts of the sequence are removed or masked.
+3. Outliers, where a small number of time points receive large deviations.
 
 The current implementation supports the following noise names in `dataloader.py`:
 
 - `jittering`
-- `sampling`
-- `multiplicative`
-- `outlier`
 - `missing`
+- `outlier`
 
 ## Evaluation
 
@@ -108,7 +104,8 @@ The main analysis focuses on:
 ├── distances.py        # Distance categories and distance/kernel utilities
 ├── knn.py              # 1-NN experiment
 ├── svm.py              # SVM experiment
-├── logging_utils.py    # Result saving and plotting
+├── logging_utils.py    # Result saving
+├── plot.py             # Visualization from saved result tables
 ├── ucr_dataset.py      # UCR dataset names and domain metadata
 ├── requirements.txt    # Python dependencies
 └── README.md
@@ -168,30 +165,23 @@ Specify datasets and distance measures:
 python main.py --datasets BeetleFly,Coffee --metrics euclidean,dtw,twe
 ```
 
-Run experiments and generate plots afterward:
-
-```bash
-python main.py --plot
-```
-
 ## Plotting Existing Results
 
-If the experiments have already been run and you only want to plot saved results:
+Visualization is separated from experiment execution. After experiments have generated CSV files under `results/statistcs/`, run:
 
 ```bash
-python main.py --plot-only --plot
+python plot.py
 ```
 
-To generate an overall summary plot across all saved result tables:
+This creates two groups of figures:
+
+- `results/plots/distance_trends/`: one figure per distance. Each figure contains one subplot for each supported noise type. The curves show how the mean accuracy over all available datasets changes as noise intensity increases.
+- `results/plots/relative_decline/`: one figure per noise type. Each figure contains one subplot for each non-zero noise intensity. The bars compare the relative accuracy drop of different distances, computed against the zero-noise baseline.
+
+You can also choose custom input and output directories:
 
 ```bash
-python main.py --plot-only --plot-overall
-```
-
-To generate both individual and overall plots:
-
-```bash
-python main.py --plot-only --plot --plot-overall
+python plot.py --results-root results/statistcs --output-root results/plots
 ```
 
 ## Result Organization
@@ -217,6 +207,13 @@ Plots are saved under:
 
 ```text
 results/plots/
+```
+
+The plotting script writes:
+
+```text
+results/plots/distance_trends/
+results/plots/relative_decline/
 ```
 
 ## Notes

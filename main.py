@@ -9,7 +9,7 @@ CONFIG = {
     'experiment': 'both',
     'dataset_range': (7, 8),
     'noise_configs': [
-        (t, i) for t in ['jittering', 'missing', 'outlier', 'scaling', 'trend']
+        (t, i) for t in ['jittering', 'missing', 'outlier']
         for i in [0.0, 0.05, 0.1, 0.2, 0.4]
     ],
     'metric': DISTANCES,

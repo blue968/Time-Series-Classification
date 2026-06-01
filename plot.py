@@ -10,7 +10,7 @@ from distances import DISTANCES, DISTANCES_BY_CATEGORY
 
 RESULTS_ROOT = "results/statistcs"
 OUTPUT_ROOT = "results/plots"
-NOISE_ORDER = ["jittering", "missing", "outlier", "scaling", "trend", "sampling", "multiplicative"]
+NOISE_ORDER = ["jittering", "missing", "outlier"]
 CLASSIFIER_ORDER = ["1nn", "svm"]
 BASE_COLUMNS = {"Noise", "Noise_Type", "Intensity"}
 
@@ -78,6 +78,7 @@ def load_results(results_root=RESULTS_ROOT):
     data["Intensity"] = pd.to_numeric(data["Intensity"], errors="coerce")
     data["Accuracy"] = pd.to_numeric(data["Accuracy"], errors="coerce")
     data = data.dropna(subset=["Noise_Type", "Intensity", "Accuracy"])
+    data = data[data["Noise_Type"].isin(NOISE_ORDER)]
     data = data[data["Classifier"].notna()]
     return data
 
@@ -90,7 +91,7 @@ def _style_axes(ax):
 
 def plot_distance_trends(data, output_root=OUTPUT_ROOT):
     """
-    For each distance, draw one figure with five noise subplots.
+    For each distance, draw one figure with one subplot per supported noise type.
 
     Each line is the mean accuracy over all available datasets at a given noise
     intensity, separated by classifier.
@@ -98,7 +99,7 @@ def plot_distance_trends(data, output_root=OUTPUT_ROOT):
     output_dir = Path(output_root) / "distance_trends"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    noise_types = _ordered(data["Noise_Type"].unique(), NOISE_ORDER)[:5]
+    noise_types = _ordered(data["Noise_Type"].unique(), NOISE_ORDER)
     distances = _ordered(data["Distance"].unique(), DISTANCES)
     classifiers = _ordered(data["Classifier"].unique(), CLASSIFIER_ORDER)
     colors = dict(zip(classifiers, plt.cm.Set2(np.linspace(0, 1, max(len(classifiers), 3)))))
@@ -109,7 +110,9 @@ def plot_distance_trends(data, output_root=OUTPUT_ROOT):
         if distance_data.empty:
             continue
 
-        fig, axes = plt.subplots(1, 5, figsize=(22, 4.6), sharey=True)
+        fig_width = max(9, 5.2 * len(noise_types))
+        fig, axes = plt.subplots(1, len(noise_types), figsize=(fig_width, 4.8), sharey=True, squeeze=False)
+        axes = axes.ravel()
         distance_category = distance_data["Distance_Category"].iloc[0]
         dataset_count = distance_data["Dataset"].nunique()
 
@@ -190,7 +193,7 @@ def _add_relative_drop(data):
 
 def plot_relative_decline(data, output_root=OUTPUT_ROOT):
     """
-    For each noise type, draw one figure with five intensity subplots.
+    For each noise type, draw one figure with non-zero intensity subplots.
 
     Each subplot compares distances by their mean relative accuracy drop over
     all datasets. Relative drop is computed against intensity 0 for the same
@@ -200,7 +203,7 @@ def plot_relative_decline(data, output_root=OUTPUT_ROOT):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     data = _add_relative_drop(data)
-    noise_types = _ordered(data["Noise_Type"].unique(), NOISE_ORDER)[:5]
+    noise_types = _ordered(data["Noise_Type"].unique(), NOISE_ORDER)
     distances = _ordered(data["Distance"].unique(), DISTANCES)
     classifiers = _ordered(data["Classifier"].unique(), CLASSIFIER_ORDER)
     colors = dict(zip(classifiers, plt.cm.Set2(np.linspace(0, 1, max(len(classifiers), 3)))))
@@ -214,7 +217,9 @@ def plot_relative_decline(data, output_root=OUTPUT_ROOT):
         intensities = [value for value in sorted(noise_data["Intensity"].unique()) if value != 0][:5]
         if not intensities:
             continue
-        fig, axes = plt.subplots(1, 5, figsize=(24, 5), sharey=True)
+        fig_width = max(6, 4.8 * len(intensities))
+        fig, axes = plt.subplots(1, len(intensities), figsize=(fig_width, 5), sharey=True, squeeze=False)
+        axes = axes.ravel()
 
         for ax, intensity in zip(axes, intensities):
             subset = noise_data[noise_data["Intensity"] == intensity]
@@ -244,9 +249,6 @@ def plot_relative_decline(data, output_root=OUTPUT_ROOT):
             ax.set_xticklabels(distances, rotation=60, ha="right", fontsize=8)
             ax.set_xlabel("Distance")
             _style_axes(ax)
-
-        for ax in axes[len(intensities):]:
-            ax.axis("off")
 
         axes[0].set_ylabel("Relative accuracy drop (%)")
         handles, labels = axes[0].get_legend_handles_labels()

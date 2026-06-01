@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 from aeon.datasets import load_classification
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
@@ -44,36 +43,6 @@ class TimeSeriesDataLoader:
         rng = np.random.default_rng(self.random_state)
         return X + rng.normal(0, sigma, X.shape)
 
-    def _add_sampling_noise(self, X, factor=0.5):
-        """
-        Add Sampling Noise (Downsampling + Linear Interpolation)
-        - Randomly removes (factor) proportion of time points
-        - Recovers missing values using linear interpolation from remaining points
-        - Simulates irregular or missing data in time series
-        - Parameters: factor (0-1) controls percentage of points to drop
-        """
-        X_noisy = X.copy()
-        mask = np.random.choice([0, 1], size=X.shape[2], p=[factor, 1-factor])
-        for i in range(X.shape[0]):
-            X_noisy[i, 0, mask == 0] = np.interp(
-                np.where(mask == 0)[0], 
-                np.where(mask == 1)[0], 
-                X[i, 0, mask == 1]
-            )
-        return X_noisy
-
-    def _add_multiplicative_noise(self, X, sigma):
-        """
-        Add Multiplicative Noise (Amplitude-dependent)
-        - Multiplies time series by random noise: X_noisy = X * noise
-        - Noise magnitude is proportional to signal strength
-        - Simulates gain variations or amplitude scaling effects
-        - Parameters: sigma controls noise variation; noise ~ Normal(mean=1, std=sigma)
-        """
-        rng = np.random.default_rng(self.random_state)
-        noise = rng.normal(1, sigma, X.shape)
-        return X * noise
-
     def _add_outliers(self, X, prob=0.05, magnitude=5):
         """
         Add Outlier Noise (Sparse Impulse Noise)
@@ -111,13 +80,15 @@ class TimeSeriesDataLoader:
 
         noise_funcs = {
             'jittering': self._add_jittering,
-            'sampling': self._add_sampling_noise,
-            'multiplicative': self._add_multiplicative_noise,
             'outlier': self._add_outliers,
             'missing': self._add_missing_values
         }
-        
-        noise_func = noise_funcs.get(noise_type, self._add_jittering)
+
+        if noise_type not in noise_funcs:
+            available = ", ".join(sorted(noise_funcs))
+            raise ValueError(f"Unknown noise_type '{noise_type}'. Available noise types: {available}")
+
+        noise_func = noise_funcs[noise_type]
 
         for train_idx, test_idx in skf.split(X, y_enc):
             X_train, X_test = X[train_idx], X[test_idx]
