@@ -1,0 +1,18 @@
+term,df,chi2,p_value,significant
+Intercept,1,533.8277,0.0,***
+C(metric),14,86.875,0.0,***
+C(classifier),1,4.4712,0.034471,*
+C(noise_type),2,0.0,1.0,
+C(intensity),4,38.0235,0.0,***
+C(metric):C(classifier),14,18.2434,0.195921,
+C(metric):C(noise_type),28,0.0,1.0,
+C(classifier):C(noise_type),2,0.0,1.0,
+C(metric):C(intensity),56,156.4229,0.0,***
+C(classifier):C(intensity),4,11.28,0.023591,*
+C(noise_type):C(intensity),8,59.2628,0.0,***
+C(metric):C(classifier):C(noise_type),28,0.0,1.0,
+C(metric):C(classifier):C(intensity),56,24.3638,0.999928,
+C(metric):C(noise_type):C(intensity),112,172.0142,0.000232,***
+C(classifier):C(noise_type):C(intensity),8,7.3175,0.502793,
+C(metric):C(classifier):C(noise_type):C(intensity),112,40.3538,1.0,
+dataset Var,1,9.5324,0.002019,**
