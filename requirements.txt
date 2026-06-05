@@ -13,3 +13,6 @@ seaborn>=0.12.0
 
 # 实验辅助
 scipy>=1.10.0
+
+# 统计分析 (statistical_analysis.py)
+statsmodels>=0.14.0
