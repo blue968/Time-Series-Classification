@@ -216,6 +216,26 @@ results/plots/distance_trends/
 results/plots/relative_decline/
 ```
 
+## Statistical Analysis
+
+Aggregate and analyze results with mixed-effects modeling:
+
+```bash
+# Step 1: Aggregate all accuracy.csv into a single summary table
+python summary.py
+
+# Step 2: Fit LMM, Wald tests, diagnostics, simple effects
+python statistical_analysis.py --model-only
+
+# Step 3: Generate figures
+python plot_results.py
+```
+
+`statistical_analysis.py` can also run the full pipeline (including aggregation) without arguments.
+
+Output files: `results/summary.csv`, `results/mixed_model_wald_tests.csv`, `results/simple_effects_*.csv`, `results/plots/diagnostics/`, `results/plots/interaction_lines.png`, `results/plots/simple_effects_gap.png`, `results/plots/robustness_slopes.png`.
+
+
 ## Notes
 
 - The directory name is currently `statistcs` to match the existing project code.
